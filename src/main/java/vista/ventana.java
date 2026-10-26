@@ -419,6 +419,7 @@ public class ventana extends javax.swing.JFrame {
         return txt_telefono;
     }
 
+    
     public javax.swing.JTextField getTxtEmail() {
         return txt_email;
     }
