@@ -11,6 +11,8 @@ public class ventana extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> cmbIdioma;
     private javax.swing.JLabel lblTituloApp;
     private javax.swing.JLabel lblIdioma;
+    private javax.swing.JLabel tituloDatos;
+    private javax.swing.JLabel tituloLista;
 
     public ventana() {
         initComponents();
@@ -18,7 +20,6 @@ public class ventana extends javax.swing.JFrame {
         TemaOscuro.aplicar(this);
         configurarNuevaDistribucion();
 
-        // Crear selector de idioma
         configurarSelectorIdioma();
 
         AcabadoVisual.aplicar(this);
@@ -26,9 +27,13 @@ public class ventana extends javax.swing.JFrame {
 
         setLocationRelativeTo(null);
 
-        logica_ventana controlador = new logica_ventana(this);
+        logica_ventana controlador
+                = new logica_ventana(this);
 
-        // Aplicar traducciones iniciales
+        // Configurar traducción visual de categorías
+        configurarTraduccionCategorias();
+
+        // Aplicar idioma inicial
         aplicarIdioma();
     }
 
@@ -483,6 +488,8 @@ public class ventana extends javax.swing.JFrame {
 
     private void aplicarIdioma() {
 
+        tituloDatos.setText(Idioma.obtener("seccion.datos"));
+        tituloLista.setText(Idioma.obtener("seccion.lista"));
         // Ventana y encabezado
         setTitle(Idioma.obtener("app.titulo"));
         lblTituloApp.setText(Idioma.obtener("app.titulo"));
@@ -541,6 +548,10 @@ public class ventana extends javax.swing.JFrame {
 
         tabla.getTableHeader().repaint();
 
+// Actualizar las categorías traducidas
+        cmb_categorias.repaint();
+        tbl_contactos.repaint();
+
         revalidate();
         repaint();
     }
@@ -564,7 +575,8 @@ public class ventana extends javax.swing.JFrame {
         javax.swing.JPanel datos = new javax.swing.JPanel();
         datos.setLayout(new javax.swing.BoxLayout(datos, javax.swing.BoxLayout.Y_AXIS));
         datos.setOpaque(false);
-        javax.swing.JLabel tituloDatos = titulo("Datos del Contacto");
+        tituloDatos = titulo("Datos del Contacto");
+
         tituloDatos.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         datos.add(tituloDatos);
         datos.add(javax.swing.Box.createVerticalStrut(18));
@@ -602,7 +614,7 @@ public class ventana extends javax.swing.JFrame {
         javax.swing.JPanel cabeceraLista = new javax.swing.JPanel();
         cabeceraLista.setLayout(new javax.swing.BoxLayout(cabeceraLista, javax.swing.BoxLayout.Y_AXIS));
         cabeceraLista.setOpaque(false);
-        javax.swing.JLabel tituloLista = titulo("Lista de Contactos");
+        tituloLista = titulo("Lista de Contactos");
         tituloLista.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         cabeceraLista.add(tituloLista);
         cabeceraLista.add(javax.swing.Box.createVerticalStrut(18));
@@ -772,57 +784,132 @@ public class ventana extends javax.swing.JFrame {
         return tarjeta;
     }
 
-    
-private void configurarIconos() {
+    private void configurarIconos() {
 
-    btn_agregar.setIcon(
-        new FlatSVGIcon("iconos/add.svg", 16, 16));
+        btn_agregar.setIcon(
+                new FlatSVGIcon("iconos/add.svg", 16, 16));
 
-    btn_modificar.setIcon(
-        new FlatSVGIcon("iconos/edit.svg", 16, 16));
+        btn_modificar.setIcon(
+                new FlatSVGIcon("iconos/edit.svg", 16, 16));
 
-    btn_eliminar.setIcon(
-        new FlatSVGIcon("iconos/eliminate.svg", 16, 16));
+        btn_eliminar.setIcon(
+                new FlatSVGIcon("iconos/eliminate.svg", 16, 16));
 
-    btn_exportar.setIcon(
-        new FlatSVGIcon("iconos/export.svg", 16, 16));
+        btn_exportar.setIcon(
+                new FlatSVGIcon("iconos/export.svg", 16, 16));
 
-    for (javax.swing.JButton boton : new javax.swing.JButton[]{
-        btn_agregar, btn_modificar, btn_eliminar, btn_exportar
-    }) {
+        for (javax.swing.JButton boton : new javax.swing.JButton[]{
+            btn_agregar, btn_modificar, btn_eliminar, btn_exportar
+        }) {
+            boton.setIconTextGap(6);
+        }
+    }
+
+    private String traducirCategoria(Object valor) {
+
+        if (valor == null) {
+            return "";
+        }
+
+        String categoria = valor.toString();
+
+        switch (categoria) {
+
+            case "Familia":
+                return Idioma.obtener("categoria.familia");
+
+            case "Amigos":
+                return Idioma.obtener("categoria.amigos");
+
+            case "Trabajo":
+                return Idioma.obtener("categoria.trabajo");
+
+            case "Elija una categoria":
+            case "Elija una categoría":
+                return Idioma.obtener("campo.seleccionar");
+
+            default:
+                return categoria;
+        }
+    }
+
+    private void configurarTraduccionCategorias() {
+
+        // Traducir visualmente el ComboBox
+        javax.swing.ListCellRenderer<? super String> rendererCombo
+                = cmb_categorias.getRenderer();
+
+        cmb_categorias.setRenderer(
+                (lista, valor, indice, seleccionado, foco) -> {
+
+                    java.awt.Component componente
+                    = rendererCombo.getListCellRendererComponent(
+                            lista, valor, indice, seleccionado, foco);
+
+                    if (componente instanceof javax.swing.JLabel etiqueta) {
+                        etiqueta.setText(traducirCategoria(valor));
+                    }
+
+                    return componente;
+                });
+
+        // Traducir visualmente la columna Categoría
+        javax.swing.table.TableColumn columnaCategoria
+                = tbl_contactos.getColumnModel().getColumn(3);
+
+        javax.swing.table.TableCellRenderer rendererTabla
+                = columnaCategoria.getCellRenderer();
+
+        if (rendererTabla == null) {
+            rendererTabla = tbl_contactos.getDefaultRenderer(String.class);
+        }
+
+        final javax.swing.table.TableCellRenderer rendererOriginal
+                = rendererTabla;
+
+        columnaCategoria.setCellRenderer(
+                (tabla, valor, seleccionado, foco, fila, columna) -> {
+
+                    java.awt.Component componente
+                    = rendererOriginal.getTableCellRendererComponent(
+                            tabla, valor, seleccionado, foco, fila, columna);
+
+                    if (componente instanceof javax.swing.JLabel etiqueta) {
+                        etiqueta.setText(traducirCategoria(valor));
+                    }
+
+                    return componente;
+                });
+    }
+
+    private void cargarIcono(javax.swing.JButton boton, String archivo) {
+
+        String ruta = "/iconos/" + archivo;
+
+        java.net.URL recurso = getClass().getResource(ruta);
+
+        // Comprobar que Java encuentre el archivo
+        System.out.println(ruta + " -> " + recurso);
+
+        if (recurso == null) {
+            System.err.println("No se encontró el icono: " + ruta);
+            boton.setIcon(null);
+            return;
+        }
+
+        FlatSVGIcon icono = new FlatSVGIcon(recurso).derive(16, 16);
+
+        if (!icono.hasFound()) {
+            System.err.println("No se pudo cargar el SVG: " + ruta);
+            boton.setIcon(null);
+            return;
+        }
+
+        boton.setIcon(icono);
         boton.setIconTextGap(6);
+        boton.setHorizontalAlignment(
+                javax.swing.SwingConstants.CENTER);
     }
-}
-
-private void cargarIcono(javax.swing.JButton boton, String archivo) {
-
-    String ruta = "/iconos/" + archivo;
-
-    java.net.URL recurso = getClass().getResource(ruta);
-
-    // Comprobar que Java encuentre el archivo
-    System.out.println(ruta + " -> " + recurso);
-
-    if (recurso == null) {
-        System.err.println("No se encontró el icono: " + ruta);
-        boton.setIcon(null);
-        return;
-    }
-
-    FlatSVGIcon icono = new FlatSVGIcon(recurso).derive(16, 16);
-
-    if (!icono.hasFound()) {
-        System.err.println("No se pudo cargar el SVG: " + ruta);
-        boton.setIcon(null);
-        return;
-    }
-
-    boton.setIcon(icono);
-    boton.setIconTextGap(6);
-    boton.setHorizontalAlignment(
-            javax.swing.SwingConstants.CENTER);
-}
-
 
     // Métodos para acceder a los componentes desde el controlador
     public javax.swing.JButton getBtnAgregar() {
