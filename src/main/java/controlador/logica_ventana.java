@@ -21,6 +21,8 @@ import java.awt.event.MouseEvent;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JTable;
+import idiomas.Idioma;
+import java.text.MessageFormat;
 import modelo.persona;
 import modelo.personaDAO;
 import vista.ventana;
@@ -86,11 +88,7 @@ public class logica_ventana implements ActionListener,
             cargarContactosRegistrados();
 
         } catch (IOException ex) {
-            JOptionPane.showMessageDialog(
-                    delegado,
-                    "Error al inicializar los contactos: "
-                    + ex.getMessage()
-            );
+            mostrarErrorConDetalle("mensaje.error.inicializar", ex);
         }
     }
 
@@ -133,8 +131,8 @@ public class logica_ventana implements ActionListener,
         JPopupMenu menu = new JPopupMenu();
 
         // Crear las opciones
-        JMenuItem itemEditar = new JMenuItem("Editar contacto");
-        JMenuItem itemEliminar = new JMenuItem("Eliminar contacto");
+        JMenuItem itemEditar = new JMenuItem();
+        JMenuItem itemEliminar = new JMenuItem();
 
         // Agregar opciones al menú
         menu.add(itemEditar);
@@ -189,6 +187,10 @@ public class logica_ventana implements ActionListener,
 
                         // Seleccionar la fila correspondiente
                         tabla.setRowSelectionInterval(fila, fila);
+
+                        // Traducir el menú cada vez que se abre.
+                        itemEditar.setText(Idioma.obtener("menu.editar"));
+                        itemEliminar.setText(Idioma.obtener("menu.eliminar"));
 
                         // Mostrar el menú en la posición del mouse
                         menu.show(
@@ -300,7 +302,7 @@ public class logica_ventana implements ActionListener,
         barra.setMaximum(100);
         barra.setValue(0);
         barra.setStringPainted(true);
-        barra.setString("Cargando contactos...");
+        barra.setString(Idioma.obtener("carga.cargando"));
         barra.setIndeterminate(true);
 
         // Evitar operaciones mientras se cargan los datos
@@ -358,31 +360,22 @@ public class logica_ventana implements ActionListener,
 
                     // Carga completada
                     barra.setValue(100);
-                    barra.setString("Carga completada: "
-                            + contactos.size() + " contactos");
+                    barra.setString(MessageFormat.format(
+                            Idioma.obtener("carga.detalle"), contactos.size()));
 
                 } catch (InterruptedException ex) {
 
                     Thread.currentThread().interrupt();
 
                     barra.setValue(0);
-                    barra.setString("Carga interrumpida");
-
-                    JOptionPane.showMessageDialog(
-                            delegado,
-                            "La carga fue interrumpida."
-                    );
+                    barra.setString(Idioma.obtener("carga.interrumpida"));
+                    mostrarAviso("mensaje.carga.interrumpida");
 
                 } catch (ExecutionException ex) {
 
                     barra.setValue(0);
-                    barra.setString("Error de carga");
-
-                    JOptionPane.showMessageDialog(
-                            delegado,
-                            "Error al cargar contactos: "
-                            + ex.getCause().getMessage()
-                    );
+                    barra.setString(Idioma.obtener("carga.error"));
+                    mostrarErrorConDetalle("mensaje.error.cargar", ex.getCause());
 
                 } finally {
 
@@ -422,10 +415,7 @@ public class logica_ventana implements ActionListener,
                 || telefono.isEmpty()
                 || email.isEmpty()) {
 
-            JOptionPane.showMessageDialog(
-                    delegado,
-                    "Todos los campos deben estar llenos."
-            );
+            mostrarAviso("mensaje.campos.obligatorios");
 
             return null;
         }
@@ -433,10 +423,7 @@ public class logica_ventana implements ActionListener,
         if (delegado.getCmbCategorias().getSelectedIndex() == 0
                 || categoria.trim().isEmpty()) {
 
-            JOptionPane.showMessageDialog(
-                    delegado,
-                    "Seleccione una categoría."
-            );
+            mostrarAviso("mensaje.categoria.requerida");
 
             return null;
         }
@@ -455,10 +442,7 @@ public class logica_ventana implements ActionListener,
     public void actionPerformed(ActionEvent e) {
 
         if (dao == null) {
-            JOptionPane.showMessageDialog(
-                    delegado,
-                    "El almacenamiento no está disponible."
-            );
+            mostrarAviso("mensaje.almacenamiento.noDisponible");
             return;
         }
 
@@ -493,10 +477,7 @@ public class logica_ventana implements ActionListener,
             cargarContactosRegistrados();
             limpiarCampos();
 
-            JOptionPane.showMessageDialog(
-                    delegado,
-                    "Contacto registrado correctamente."
-            );
+            mostrarInformacion("mensaje.contacto.agregado");
 
         } catch (IOException ex) {
             mostrarError(ex);
@@ -509,10 +490,7 @@ public class logica_ventana implements ActionListener,
         int fila = obtenerIndiceSeleccionado();
 
         if (fila == -1) {
-            JOptionPane.showMessageDialog(
-                    delegado,
-                    "Seleccione un contacto para modificar."
-            );
+            mostrarAviso("mensaje.contacto.seleccionarModificar");
             return;
         }
 
@@ -533,10 +511,7 @@ public class logica_ventana implements ActionListener,
             cargarContactosRegistrados();
             limpiarCampos();
 
-            JOptionPane.showMessageDialog(
-                    delegado,
-                    "Contacto modificado correctamente."
-            );
+            mostrarInformacion("mensaje.contacto.modificado");
 
         } catch (IOException ex) {
             mostrarError(ex);
@@ -549,21 +524,12 @@ public class logica_ventana implements ActionListener,
         int fila = obtenerIndiceSeleccionado();
 
         if (fila == -1) {
-            JOptionPane.showMessageDialog(
-                    delegado,
-                    "Seleccione un contacto para eliminar."
-            );
+            mostrarAviso("mensaje.contacto.seleccionarEliminar");
             return;
         }
 
-        int respuesta = JOptionPane.showConfirmDialog(
-                delegado,
-                "¿Desea eliminar este contacto?",
-                "Confirmar eliminación",
-                JOptionPane.YES_NO_OPTION
-        );
-
-        if (respuesta != JOptionPane.YES_OPTION) {
+        if (!confirmar("mensaje.contacto.confirmarEliminar",
+                "dialogo.confirmarEliminar")) {
             return;
         }
 
@@ -578,10 +544,7 @@ public class logica_ventana implements ActionListener,
             cargarContactosRegistrados();
             limpiarCampos();
 
-            JOptionPane.showMessageDialog(
-                    delegado,
-                    "Contacto eliminado correctamente."
-            );
+            mostrarInformacion("mensaje.contacto.eliminado");
 
         } catch (IOException ex) {
             mostrarError(ex);
@@ -594,11 +557,12 @@ public class logica_ventana implements ActionListener,
         // Crear ventana para seleccionar archivo
         JFileChooser selector = new JFileChooser();
 
-        selector.setDialogTitle("Exportar contactos");
+        selector.setDialogTitle(Idioma.obtener("exportar.titulo"));
+        selector.setApproveButtonText(Idioma.obtener("exportar.guardar"));
 
         // Filtrar archivos CSV
         selector.setFileFilter(
-                new FileNameExtensionFilter("Archivo CSV", "csv")
+                new FileNameExtensionFilter(Idioma.obtener("exportar.filtroCsv"), "csv")
         );
 
         // Nombre predeterminado
@@ -626,24 +590,15 @@ public class logica_ventana implements ActionListener,
                 if (destino.getCanonicalFile()
                         .equals(original.getCanonicalFile())) {
 
-                    JOptionPane.showMessageDialog(
-                            delegado,
-                            "No puede exportar sobre el archivo original."
-                    );
+                    mostrarAviso("mensaje.exportar.noOriginal");
                     return;
                 }
 
                 // Confirmar si el archivo de destino ya existe
                 if (destino.exists()) {
 
-                    int confirmar = JOptionPane.showConfirmDialog(
-                            delegado,
-                            "El archivo ya existe. ¿Desea reemplazarlo?",
-                            "Confirmar exportación",
-                            JOptionPane.YES_NO_OPTION
-                    );
-
-                    if (confirmar != JOptionPane.YES_OPTION) {
+                    if (!confirmar("mensaje.exportar.sobrescribir",
+                            "dialogo.confirmarExportar")) {
                         return;
                     }
                 }
@@ -651,10 +606,7 @@ public class logica_ventana implements ActionListener,
                 // Llamar al método del DAO
                 dao.exportarCSV(destino);
 
-                JOptionPane.showMessageDialog(
-                        delegado,
-                        "Contactos exportados correctamente."
-                );
+                mostrarInformacion("mensaje.exportar.correcto");
 
             } catch (IOException ex) {
                 mostrarError(ex);
@@ -809,13 +761,50 @@ public class logica_ventana implements ActionListener,
                 .setText(String.valueOf(favoritos));
     }
 
-    // MOSTRAR ERRORES DEL DAO
-    private void mostrarError(IOException ex) {
+    // MENSAJES EN EL IDIOMA SELECCIONADO
+    private void mostrarInformacion(String clave) {
+        mostrarDialogo(Idioma.obtener(clave), "dialogo.informacion",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
 
-        JOptionPane.showMessageDialog(
+    private void mostrarAviso(String clave) {
+        mostrarDialogo(Idioma.obtener(clave), "dialogo.advertencia",
+                JOptionPane.WARNING_MESSAGE);
+    }
+
+    private void mostrarErrorConDetalle(String clave, Throwable ex) {
+        String detalle = ex == null ? "" : String.valueOf(ex.getMessage());
+        mostrarDialogo(Idioma.obtener(clave) + " " + detalle,
+                "dialogo.error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    // Botón Aceptar/OK traducido en todos los mensajes.
+    private void mostrarDialogo(String mensaje, String claveTitulo, int tipo) {
+        Object aceptar = Idioma.obtener("dialogo.aceptar");
+        JOptionPane.showOptionDialog(
+                delegado, mensaje, Idioma.obtener(claveTitulo),
+                JOptionPane.DEFAULT_OPTION, tipo, null,
+                new Object[]{aceptar}, aceptar);
+    }
+
+    // Sustituye los botones predeterminados de JOptionPane por Sí/No traducidos.
+    private boolean confirmar(String claveMensaje, String claveTitulo) {
+        Object[] opciones = {
+            Idioma.obtener("dialogo.si"),
+            Idioma.obtener("dialogo.no")
+        };
+        int respuesta = JOptionPane.showOptionDialog(
                 delegado,
-                "Error de almacenamiento: "
-                + ex.getMessage()
-        );
+                Idioma.obtener(claveMensaje),
+                Idioma.obtener(claveTitulo),
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null, opciones, opciones[1]);
+        return respuesta == JOptionPane.YES_OPTION;
+    }
+
+    // ERRORES DEL DAO
+    private void mostrarError(IOException ex) {
+        mostrarErrorConDetalle("mensaje.error.almacenamiento", ex);
     }
 }
