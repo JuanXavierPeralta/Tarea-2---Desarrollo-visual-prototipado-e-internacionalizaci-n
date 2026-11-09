@@ -2,6 +2,7 @@ package vista;
 
 import controlador.logica_ventana;
 import idiomas.Idioma;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 public class ventana extends javax.swing.JFrame {
 
@@ -21,6 +22,7 @@ public class ventana extends javax.swing.JFrame {
         configurarSelectorIdioma();
 
         AcabadoVisual.aplicar(this);
+        configurarIconos();
 
         setLocationRelativeTo(null);
 
@@ -769,6 +771,58 @@ public class ventana extends javax.swing.JFrame {
         tarjeta.add(valor);
         return tarjeta;
     }
+
+    
+private void configurarIconos() {
+
+    btn_agregar.setIcon(
+        new FlatSVGIcon("iconos/add.svg", 16, 16));
+
+    btn_modificar.setIcon(
+        new FlatSVGIcon("iconos/edit.svg", 16, 16));
+
+    btn_eliminar.setIcon(
+        new FlatSVGIcon("iconos/eliminate.svg", 16, 16));
+
+    btn_exportar.setIcon(
+        new FlatSVGIcon("iconos/export.svg", 16, 16));
+
+    for (javax.swing.JButton boton : new javax.swing.JButton[]{
+        btn_agregar, btn_modificar, btn_eliminar, btn_exportar
+    }) {
+        boton.setIconTextGap(6);
+    }
+}
+
+private void cargarIcono(javax.swing.JButton boton, String archivo) {
+
+    String ruta = "/iconos/" + archivo;
+
+    java.net.URL recurso = getClass().getResource(ruta);
+
+    // Comprobar que Java encuentre el archivo
+    System.out.println(ruta + " -> " + recurso);
+
+    if (recurso == null) {
+        System.err.println("No se encontró el icono: " + ruta);
+        boton.setIcon(null);
+        return;
+    }
+
+    FlatSVGIcon icono = new FlatSVGIcon(recurso).derive(16, 16);
+
+    if (!icono.hasFound()) {
+        System.err.println("No se pudo cargar el SVG: " + ruta);
+        boton.setIcon(null);
+        return;
+    }
+
+    boton.setIcon(icono);
+    boton.setIconTextGap(6);
+    boton.setHorizontalAlignment(
+            javax.swing.SwingConstants.CENTER);
+}
+
 
     // Métodos para acceder a los componentes desde el controlador
     public javax.swing.JButton getBtnAgregar() {
