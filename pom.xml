@@ -10,4 +10,5 @@
         <maven.compiler.release>27</maven.compiler.release>
         <exec.mainClass>com.GestiondeContactos.Tarea_1</exec.mainClass>
     </properties>
+    <name>Tarea_2</name>
 </project>
